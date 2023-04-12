@@ -1,0 +1,40 @@
+name: Build CLI app
+on:
+  push:
+    branches: ["main"]
+  schedule:
+    - cron: "30 12 * * 0" # Run once every Sunday
+  
+jobs:
+  build_llvm:
+    runs-on: ubuntu-latest
+
+    name: Build containers-storage
+    steps:
+      - name: Cache DNF
+        id: cache-dnf
+        uses: pat-s/always-upload-cache@v3.0.11
+        with:
+          path: /var/cache/dnf
+          key: ${{ runner.os }}-dnf
+
+      - name: Download go
+        run:  |
+          dnf install golang make device-mapper-devel -y \
+            --setopt install_weak_deps=false \
+            --setopt keepcache=true \
+            --nodocs
+
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          repository: 'containers/storage'
+
+      - name: Build storage-cli
+        run:  |
+          make binary
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: containers-storage
+          path: containers-storage
