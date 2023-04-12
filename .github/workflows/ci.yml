@@ -8,6 +8,10 @@ on:
 jobs:
   build_llvm:
     runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:latest
+      options: --privileged --device /dev/fuse:rw --security-opt label=disable --security-opt seccomp=unconfined
+
 
     name: Build containers-storage
     steps:
