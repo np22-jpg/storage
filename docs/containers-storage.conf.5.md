@@ -55,6 +55,11 @@ $ restorecon -R -v /NEWSTORAGEPATH
 
 A common use case for this field is to provide a local storage directory when user home directories are NFS-mounted (podman does not support container storage over NFS).
 
+**imagestore**=""
+  Path of imagestore different from `graphroot`, by default storage library stores all images in `graphroot` but if `imagestore` is provided it will store newly pulled images in provided `imagestore` but will keep using `graphroot` for everything else. If user is using `overlay` driver then images which were already part of `graphroot` will still be accessible ( Internally storage library will mount `graphroot` as an `additionalImageStore` to allow this behaviour ).
+
+A common use case for this field is for the users who want to split the file-system in different parts i.e disk which stores images vs disk used by the container created by the image.
+
 **runroot**=""
   container storage run dir (default: "/run/containers/storage")
 Default directory to store all temporary writable content created by container storage programs. The rootless runroot path supports environment variable substitutions (ie. `$HOME/containers/storage`)
@@ -88,7 +93,7 @@ container registry. These options can deduplicate pulling of content, disk
 storage of content and can allow the kernel to use less memory when running
 containers.
 
-containers/storage supports four keys
+containers/storage supports three keys
   * enable_partial_images="true" | "false"
     Tells containers/storage to look for files previously pulled in storage
     rather then always pulling them from the container registry.
@@ -105,14 +110,14 @@ containers/storage supports four keys
   Remap-UIDs/GIDs is the mapping from UIDs/GIDs as they should appear inside of a container, to the UIDs/GIDs outside of the container, and the length of the range of UIDs/GIDs.  Additional mapped sets can be listed and will be heeded by libraries, but there are limits to the number of mappings which the kernel will allow when you later attempt to run a container.
 
   Example
-     remap-uids = 0:1668442479:65536
-     remap-gids = 0:1668442479:65536
+     remap-uids = "0:1668442479:65536"
+     remap-gids = "0:1668442479:65536"
 
   These mappings tell the container engines to map UID 0 inside of the container to UID 1668442479 outside.  UID 1 will be mapped to 1668442480. UID 2 will be mapped to 1668442481, etc, for the next 65533 UIDs in succession.
 
 **remap-user**=""
 **remap-group**=""
-  Remap-User/Group is a user name which can be used to look up one or more UID/GID ranges in the /etc/subuid or /etc/subgid file.  Mappings are set up starting with an in-container ID of 0 and then a host-level ID taken from the lowest range that matches the specified name, and using the length of that range. Additional ranges are then assigned, using the ranges which specify the lowest host-level IDs first, to the lowest not-yet-mapped in-container ID, until all of the entries have been used for maps.
+  Remap-User/Group is a user name which can be used to look up one or more UID/GID ranges in the /etc/subuid or /etc/subgid file.  Mappings are set up starting with an in-container ID of 0 and then a host-level ID taken from the lowest range that matches the specified name, and using the length of that range. Additional ranges are then assigned, using the ranges which specify the lowest host-level IDs first, to the lowest not-yet-mapped in-container ID, until all of the entries have been used for maps.  This setting overrides the Remap-UIDs/GIDs setting.
 
   Example
      remap-user = "containers"
